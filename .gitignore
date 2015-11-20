@@ -106,10 +106,9 @@ int main(int argc, char *argv[])
 
         cout << "\nPontuacao: " << score_melhor << "\n\n";
 
-        // verifica se encontrou a solução ótima global
+        // verifica se encontrou o indivíduo considerado perfeito
         if(score_melhor == tam_genes)
-
-            break;
+              break;
     }
 
     return 0;
