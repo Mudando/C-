@@ -15,6 +15,107 @@ double prob_cruz = 0.7; // probabilidade de cruzamento
 // população
 vector<vector<int> > populacao;
 
+//protótipos
+void inicializaPopulacao();
+void mostrarPopulacao();
+int obterPontuacao(vector<int> individuo);
+void mutacao(vector<int>& individuo);
+void cruzamento(int indice_pai1, int indice_pai2, vector<int>& filho);
+int obterMelhor();
+
+int main(int argc, char *argv[])
+{
+    srand(time(NULL));
+
+    inicializaPopulacao();
+    mostrarPopulacao();
+
+    for(int i = 0; i < geracoes; i++)//quantidade máxima de gerações
+    {
+        for(int j = 0; j < tam_torneio; j++)//quantidade de torneios
+        {
+
+            // calcula a probabilidade de cruzamento
+            double prob = ((double) rand() / ((double)RAND_MAX + 1));
+
+            if(prob < prob_cruz)
+            {
+                // adiciona os pais, só atribui o valor inicialmente ao pai1 com o intuito de não repetir o mesmo pai
+                int indice_pai1 = rand() % tam_pop;
+                int indice_pai2;
+
+                do
+                {
+                    indice_pai2 = rand() % tam_pop;//gera o pai2
+                }
+                while(indice_pai1 == indice_pai2);
+
+                vector<int> filho;
+
+                // aplica o cruzamento de 1 ponto
+                cruzamento(indice_pai1, indice_pai2, filho);
+
+                // calcula a probabilidade de mutação
+                prob = ((double) rand() / ((double)RAND_MAX + 1));
+                if(prob < prob_mut)
+                    mutacao(filho);
+
+                //verifica qual a pontuaçã dos pais e do filho
+                int scorePai1 = obterPontuacao(populacao[indice_pai1]);
+                int scorePai2 = obterPontuacao(populacao[indice_pai2]);
+                int scoreFilho = obterPontuacao(filho);
+
+
+                //se a pontuação do filho é melhor que a pontuação dos pais, caso seja ele irá subistituir o pai
+                if(scoreFilho > scorePai1 )//verifica pai 1
+                {
+                    cout<<"Individuo "<< j<<" subistitui Pai1 "<<"\nGeração "<< i+1<<"\n\n"<<endl;
+
+                    // faz a cópia dos genes do filho para o pai
+                    for(int k = 0; k < tam_genes; k++)
+                        populacao[indice_pai1][k] = filho[k];
+                }
+                else
+                {
+                    if(scoreFilho > scorePai2)//verifica pai 2
+                    {
+                        cout<<"Individuo "<< j<<" subistitui Pai2 "<<"\nGeração "<< i+1<<"\n\n"<<endl;
+
+                        // faz a cópia dos genes do filho para o pai
+                        for(int k = 0; k < tam_genes; k++)
+                            populacao[indice_pai2][k] = filho[k];
+                    }
+                    else
+                        cout<<"Individuo "<< j<<" fraco "<<"\nGeração "<< i+1<<"\n\n"<<endl;//vai mostra cada individuo e sua geração
+
+
+                }
+
+            }
+
+        }
+
+        cout << "Geracao " << i + 1 << endl;
+        cout << "Melhor: ";
+
+        int indice_melhor = obterMelhor();
+        int score_melhor = obterPontuacao(populacao[indice_melhor]);
+
+        for(int j = 0; j < tam_genes; j++)
+            cout << populacao[indice_melhor][j] << " ";
+
+        cout << "\nPontuacao: " << score_melhor << "\n\n";
+
+        // verifica se encontrou a solução ótima global
+        if(score_melhor == tam_genes)
+
+            break;
+    }
+
+    return 0;
+}
+
+
 void inicializaPopulacao()
 {
     for(int i = 0; i < tam_pop; i++)
@@ -94,94 +195,4 @@ int obterMelhor()
     }
 
     return indice_melhor;
-}
-
-int main(int argc, char *argv[])
-{
-    srand(time(NULL));
-
-    inicializaPopulacao();
-    //mostrarPopulacao();
-
-    for(int i = 0; i < geracoes; i++)
-    {
-        for(int j = 0; j < tam_torneio; j++)
-        {
-
-            // calcula a probabilidade de cruzamento
-            double prob = ((double) rand() / ((double)RAND_MAX + 1));
-
-            if(prob < prob_cruz)
-            {
-                // escolhe dois pais
-                int indice_pai1 = rand() % tam_pop;
-                int indice_pai2;
-
-                // garante que os índices dos pais não são iguais
-                do
-                {
-                    indice_pai2 = rand() % tam_pop;
-                }
-                while(indice_pai1 == indice_pai2);
-
-                vector<int> filho;
-
-                // aplica o cruzamento de 1 ponto
-                cruzamento(indice_pai1, indice_pai2, filho);
-
-                // calcula a probabilidade de mutação
-                prob = ((double) rand() / ((double)RAND_MAX + 1));
-                if(prob < prob_mut)
-                    mutacao(filho);
-
-
-                int scorePai1 = obterPontuacao(populacao[indice_pai1]);
-                int scorePai2 = obterPontuacao(populacao[indice_pai2]);
-                int scoreFilho = obterPontuacao(filho);
-
-                if(scoreFilho > scorePai1 && scoreFilho < scorePai2)
-                {
-                    cout<<"Individuo "<< j<<" subistitui Pai1 "<<"\nGeração "<< i+1<<"\n\n"<<endl;
-
-                    // faz a cópia dos genes do filho para o pai
-                    for(int k = 0; k < tam_genes; k++)
-                        populacao[indice_pai1][k] = filho[k];
-                }
-                else
-                {
-                    if(scoreFilho > scorePai2)//como já fizemos a verificação com o pai 1 não precisamos fazer novamente
-                    {
-                        cout<<"Individuo "<< j<<" subistitui Pai2 "<<"\nGeração "<< i+1<<"\n\n"<<endl;
-
-                        // faz a cópia dos genes do filho para o pai
-                        for(int k = 0; k < tam_genes; k++)
-                            populacao[indice_pai2][k] = filho[k];
-                    }
-                    else
-                        cout<<"Individuo "<< j<<" fraco "<<"\nGeração "<< i+1<<"\n\n"<<endl;
-
-
-                }
-
-            }
-
-        }
-
-        cout << "Geracao " << i + 1 << endl;
-        cout << "Melhor: ";
-
-        int indice_melhor = obterMelhor();
-        int score_melhor = obterPontuacao(populacao[indice_melhor]);
-
-        for(int j = 0; j < tam_genes; j++)
-            cout << populacao[indice_melhor][j] << " ";
-
-        cout << "\nPontuacao: " << score_melhor << "\n\n";
-
-        // verifica se encontrou a solução ótima global
-        if(score_melhor == tam_genes)
-            break;
-    }
-
-    return 0;
 }
